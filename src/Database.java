@@ -1,4 +1,7 @@
+import org.json.JSONObject;
+
 import java.sql.*;
+import java.time.Instant;
 
 public class Database {
     //CREATE TABLE Queries
@@ -51,6 +54,11 @@ public class Database {
             "AND s.id=s2i.skillid " +
             "AND i.id=?";
     PreparedStatement prepFetchInnovation;
+    String INSERTINNOVATION = "INSERT INTO innovations " +
+            "(title, description, score, innovator, searching, creation) " +
+            "VALUES " +
+            "(?,?,0,?,1,?)";
+    PreparedStatement prepInsertInnovation;
 
     Connection conn;
 
@@ -65,6 +73,7 @@ public class Database {
             stmt.execute(CREATESKILL2INNOVATION);
             prepFetchProfile=conn.prepareStatement(FETCHPROFILE);
             prepFetchInnovation = conn.prepareStatement(FETCHINNOVATION);
+            prepInsertInnovation = conn.prepareStatement(INSERTINNOVATION);
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -95,4 +104,20 @@ public class Database {
         }
     }
 
+    public int checkAuthorisation(String auth) {
+        return 1;
+    }
+
+    public boolean storeInnovation(JSONObject json) {
+        try {
+            prepInsertInnovation.setString(1,json.getString("title"));
+            prepInsertInnovation.setString(2,json.getString("description"));
+            prepInsertInnovation.setInt(3,json.getInt("user"));
+            prepInsertInnovation.setLong(4, Instant.now().getEpochSecond());
+            return prepInsertInnovation.execute();
+        } catch (SQLException e) {
+            return false;
+        }
+
+    }
 }

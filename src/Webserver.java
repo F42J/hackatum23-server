@@ -1,4 +1,5 @@
 import io.javalin.Javalin;
+import io.javalin.http.Context;
 import org.json.JSONObject;
 
 import java.sql.ResultSet;
@@ -21,6 +22,7 @@ public class Webserver {
                     if (json!=null) {ctx.result(json);ctx.status(200);}
                     else {ctx.status(500);ctx.result("Internal Server Error");}
                 })
+                .post("/innovation",ctx -> createInnovation(ctx))
                 .start(8812);
 
         try {
@@ -29,6 +31,19 @@ public class Webserver {
             throw new RuntimeException(e);
         }
         app.stop();
+    }
+
+    private void createInnovation(Context ctx) {
+        JSONObject json = new JSONObject(ctx.body());
+        String auth = json.getString("auth");
+        int id = data.checkAuthorisation(auth);
+        if (id == -1) {ctx.status(401);ctx.result("Unauthorized");}
+        boolean success=data.storeInnovation(json);
+        if (success) {
+            ctx.status(200);
+        } else {
+            ctx.status(500);
+        }
     }
 
     private String fetchInnovation(String id) {
